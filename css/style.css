@@ -1,0 +1,171 @@
+/* ============================================================
+   DESIGN SYSTEM: SAGE GREEN & MUTED BLUE (EDUCATIONAL THEME)
+   Nyaman di mata, interaktif, dan profesional.
+   ============================================================ */
+
+:root {
+  /* Palet Warna Dasar */
+  --bg-main: #F4F7F5;       /* Hijau-abu sangat muda untuk background luar */
+  --bg-surface: #FFFFFF;    /* Putih bersih untuk card / panel kontainer */
+  --border-color: #E2E8F0;  /* Garis pembatas yang tipis & samar */
+  
+  /* Teks (Sangat krusial untuk keterbacaan materi) */
+  --text-main: #2C3E50;     /* Biru arang gelap (lebih empuk di mata dibanding hitam pekat) */
+  --text-muted: #64748B;    /* Abu-abu untuk teks sekunder / keterangan */
+  
+  /* Warna Aksen & Identitas */
+  --primary: #4A6B5D;       /* Sage Green (Warna utama: tenang dan fokus) */
+  --primary-light: #EBF1ED; /* Versi super muda untuk background menu aktif */
+  --secondary: #5C7894;     /* Muted Blue (Warna pendukung untuk elemen variasi) */
+  --secondary-light: #EEF2F6;
+  
+  /* Status */
+  --success: #4E8A6B;       /* Hijau sukses */
+  --danger: #C06B6B;        /* Merah kalem */
+  
+  /* Konstruksi Elemen */
+  --radius-lg: 16px;        /* Sudut membulat modern untuk Card */
+  --radius-sm: 8px;         /* Sudut membulat untuk Tombol & Input */
+  --shadow-sm: 0 2px 8px rgba(44, 62, 80, 0.04);
+  --shadow-md: 0 10px 20px rgba(44, 62, 80, 0.06);
+  
+  /* Efek Animasi */
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Reset Dasar */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 1. KONTEN UTAMA & CARD (Lebih Interaktif) */
+.panel, .card, .stat-card, .file-card, .produk-header {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+}
+
+/* Efek ketika kursor mendekati Card Materi / Produk */
+.panel:hover, .card:hover, .stat-card:hover, .file-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: #CBD5E1;
+}
+
+/* 2. TOMBOL (INTERAKTIF & RESPONSIF) */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+  transition: var(--transition);
+  text-decoration: none;
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  color: #FFFFFF;
+}
+
+.btn-primary:hover {
+  background-color: #3D594C; /* Sedikit lebih gelap saat di-hover */
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(74, 107, 93, 0.2);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  background-color: var(--secondary-light);
+  color: var(--secondary);
+}
+
+.btn-secondary:hover {
+  background-color: #E2E8F0;
+  color: #475D73;
+}
+
+/* 3. INPUT FORM (Efek Fokus yang Halus) */
+input[type="text"], input[type="password"], input[type="email"], select, textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background-color: #F8FAFC;
+  color: var(--text-main);
+  font-size: 0.95rem;
+  transition: var(--transition);
+}
+
+/* Ketika pengguna mengklik kolom input */
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  background-color: var(--bg-surface);
+  box-shadow: 0 0 0 4px var(--primary-light);
+}
+
+/* 4. SIDEBAR & NAVIGASI */
+.sidebar {
+  background-color: var(--bg-surface);
+  border-right: 1px solid var(--border-color);
+  width: 260px;
+  height: 100vh;
+  position: fixed;
+  padding: 24px;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  color: var(--text-muted);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+  transition: var(--transition);
+  font-weight: 500;
+}
+
+/* Menu Navigasi Interaktif saat Disorot */
+.sidebar-link:hover {
+  background-color: var(--primary-light);
+  color: var(--primary);
+  padding-left: 22px; /* Efek bergeser sedikit ke kanan */
+}
+
+.sidebar-link.active {
+  background-color: var(--primary);
+  color: #FFFFFF;
+}
+
+/* --- Tambahan Utilitas untuk Teks Pembahasan Materi --- */
+h1, h2, h3 {
+  color: var(--text-main);
+  font-weight: 700;
+  margin-bottom: 0.5em;
+}
+p {
+  color: var(--text-muted);
+  margin-bottom: 1em;
+}
