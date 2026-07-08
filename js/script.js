@@ -3,7 +3,7 @@
    ============================================================ */
 
 // ⚠️ PENTING: Ganti string di bawah dengan URL Web App Anda dari Fase 1
-const API_URL = "https://script.google.com/AKfycbwJQFw8a7idpuNclGyuKu6NQtk3r4HWQ8sF3JgMzhfpT9t_29Gn2b9wq-C1_W5g0k1J8Q/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwJQFw8a7idpuNclGyuKu6NQtk3r4HWQ8sF3JgMzhfpT9t_29Gn2b9wq-C1_W5g0k1J8Q/exec";
 
 /**
  * Fungsi Utama untuk berkomunikasi dengan Google Apps Script (Backend)
