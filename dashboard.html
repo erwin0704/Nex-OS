@@ -1,130 +1,97 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <base target="_top" href="<?= webAppUrl ?>">
   <meta charset="UTF-8">
-  <link rel="stylesheet" href="css/style.css">
-  <style>
-    .app-shell { display: flex; min-height: 100vh; }
+  <title>Dashboard - Studio Kamu</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            accent: '#4A6B5D',
+            accentsoft: '#EBF1ED',
+            inksoft: '#64748B'
+          }
+        }
+      }
+    }
+  </script>
 
-    /* ---------- Sidebar (referensi: Notion) ---------- */
+  <link rel="stylesheet" href="css/style.css">
+
+  <style>
+    /* Desain Khusus Dashboard (Dipertahankan dari aslinya) */
+    .app-shell { display: flex; min-height: 100vh; }
+    
     .sidebar {
-      width: 240px;
-      flex-shrink: 0;
-      background: var(--surface);
-      border-right: 1px solid var(--border);
-      padding: 20px 14px;
-      display: flex;
-      flex-direction: column;
-      position: sticky;
-      top: 0;
-      height: 100vh;
+      width: 240px; flex-shrink: 0; background: var(--surface);
+      border-right: 1px solid var(--border); padding: 20px 14px;
+      display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh;
     }
-    .sidebar-brand {
-      font-family: var(--font-display);
-      font-weight: 600;
-      font-size: 17px;
-      padding: 6px 10px 18px;
-    }
+    .sidebar-brand { font-family: var(--font-display); font-weight: 600; font-size: 17px; padding: 6px 10px 18px; }
     .sidebar-nav { display: flex; flex-direction: column; gap: 2px; flex: 1; }
     .sidebar-link {
-      display: flex; align-items: center; gap: 10px;
-      padding: 9px 10px;
-      border-radius: 8px;
-      font-size: 14px;
-      color: var(--ink-soft);
-      font-weight: 500;
+      display: flex; align-items: center; gap: 10px; padding: 9px 10px;
+      border-radius: 8px; font-size: 14px; color: var(--ink-soft); font-weight: 500;
     }
     .sidebar-link .ic { font-size: 15px; width: 18px; text-align: center; }
     .sidebar-link:hover { background: var(--bg); color: var(--ink); }
     .sidebar-link.active { background: var(--accent-soft); color: var(--accent); }
     .sidebar-divider { height: 1px; background: var(--border); margin: 12px 4px; }
-    .sidebar-user {
-      display: flex; align-items: center; gap: 10px;
-      padding: 10px; border-radius: 10px;
-      border: 1px solid var(--border);
-    }
+    .sidebar-user { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 10px; border: 1px solid var(--border); }
     .avatar {
-      width: 32px; height: 32px; border-radius: 50%;
-      background: var(--accent); color: #fff;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 13px; font-weight: 600; flex-shrink: 0;
+      width: 32px; height: 32px; border-radius: 50%; background: var(--accent); color: #fff;
+      display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; flex-shrink: 0;
     }
     .sidebar-user-name { font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .sidebar-user-role { font-size: 11px; color: var(--ink-soft); }
-    .logout-btn { background: none; border: none; color: var(--ink-soft); font-size: 16px; margin-left: auto; padding: 4px; }
-    .logout-btn:hover { color: var(--danger); }
+    .sidebar-user-role { font-size: 11px; color: var(--ink-soft); text-transform: capitalize; }
+    .logout-btn { background: none; border: none; color: var(--ink-soft); font-size: 16px; margin-left: auto; padding: 4px; cursor: pointer; transition: 0.2s;}
+    .logout-btn:hover { color: var(--danger); transform: scale(1.1); }
 
-    /* ---------- Main content ---------- */
     .main { flex: 1; padding: 32px 40px; max-width: 1000px; }
     .greeting { font-size: 26px; margin-bottom: 4px; }
-    .greeting-sub { font-size: 14px; margin-bottom: 32px; }
-
+    .greeting-sub { font-size: 14px; margin-bottom: 32px; color: var(--ink-soft); }
     .section-title {
-      display: flex; align-items: center; gap: 8px;
-      font-size: 13px; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.04em; color: var(--ink-soft);
-      margin: 32px 0 14px;
+      display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-soft); margin: 32px 0 14px;
     }
     .section-title:first-of-type { margin-top: 0; }
 
-    /* Kartu produk ala Kajabi */
     .produk-owned-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-    .produk-owned-card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 18px;
-    }
+    .produk-owned-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; transition: var(--transition); display: block; }
+    .produk-owned-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-sm); border-color: var(--accent); }
     .produk-owned-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
-    .produk-owned-nama { font-weight: 600; font-size: 15px; }
+    .produk-owned-nama { font-weight: 600; font-size: 15px; color: var(--ink); }
     .badge-expired { font-size: 11px; background: #FEF2F2; color: var(--danger); padding: 3px 8px; border-radius: 6px; font-weight: 600; }
     .progress-bar-track { height: 8px; background: var(--bg); border-radius: 99px; overflow: hidden; margin: 10px 0 6px; }
-    .progress-bar-fill { height: 100%; background: var(--accent); border-radius: 99px; }
+    .progress-bar-fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width 1s ease-in-out; }
     .progress-label { font-size: 12px; color: var(--ink-soft); display: flex; justify-content: space-between; }
 
-    .empty-state {
-      border: 1px dashed var(--border); border-radius: var(--radius);
-      padding: 36px 24px; text-align: center; color: var(--ink-soft); font-size: 14px;
-    }
-
-    /* Lanjutkan belajar */
-    .continue-card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 20px;
-    }
+    .empty-state { border: 1px dashed var(--border); border-radius: var(--radius); padding: 36px 24px; text-align: center; color: var(--ink-soft); font-size: 14px; grid-column: 1/-1; }
+    .continue-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
     .continue-modul-nama { font-size: 13px; color: var(--ink-soft); margin-bottom: 2px; }
     .continue-produk-nama { font-weight: 600; font-size: 16px; margin-bottom: 14px; }
-    .konten-row {
-      display: flex; align-items: center; gap: 10px;
-      padding: 10px 12px; border-radius: 9px;
-      background: var(--bg);
-      margin-bottom: 8px;
-      font-size: 13px;
-      font-weight: 500;
-    }
+    .konten-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; background: var(--bg); margin-bottom: 8px; font-size: 13px; font-weight: 500; transition: 0.2s; color: var(--ink); }
+    .konten-row:hover { background: var(--accent-soft); color: var(--accent); }
     .konten-row .ic { width: 20px; text-align: center; }
 
-    /* Update terbaru */
     .update-item { padding: 12px 0; border-bottom: 1px solid var(--border); }
     .update-item:last-child { border-bottom: none; }
-    .update-judul { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
+    .update-judul { font-weight: 600; font-size: 14px; margin-bottom: 2px; color: var(--ink); }
     .update-tanggal { font-size: 12px; color: var(--ink-soft); }
 
-    /* Bonus + FAQ ringkas */
     .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .info-card {
-      background: var(--accent-soft); border-radius: var(--radius);
-      padding: 18px;
-    }
-    .info-card h3 { font-size: 15px; margin-bottom: 6px; }
-    .info-card p { font-size: 13px; margin-bottom: 10px; }
+    .info-card { background: var(--accent-soft); border-radius: var(--radius); padding: 18px; }
+    .info-card h3 { font-size: 15px; margin-bottom: 6px; color: var(--ink); }
+    .info-card p { font-size: 13px; margin-bottom: 10px; color: var(--ink-soft); }
 
     @media (max-width: 860px) {
       .app-shell { flex-direction: column; }
       .sidebar { width: 100%; height: auto; position: relative; flex-direction: row; align-items: center; overflow-x: auto; }
       .sidebar-nav { flex-direction: row; flex: none; }
-      .sidebar-divider { display: none; }
-      .sidebar-user { display: none; }
-      .sidebar-brand { display: none; }
+      .sidebar-divider, .sidebar-user, .sidebar-brand { display: none; }
       .main { padding: 20px; }
       .produk-owned-grid, .info-grid { grid-template-columns: 1fr; }
     }
@@ -133,15 +100,13 @@
 <body>
 
   <div class="app-shell">
-    <!-- ============ SIDEBAR (referensi: Notion) ============ -->
     <aside class="sidebar">
       <div class="sidebar-brand">Studio Kamu<span style="color:var(--accent)">.</span></div>
-
       <nav class="sidebar-nav">
-        <a class="sidebar-link active" href="?page=dashboard&token=<?= session.token ?>">
+        <a class="sidebar-link active" href="dashboard.html">
           <span class="ic">🏠</span> Dashboard
         </a>
-        <a class="sidebar-link" href="?page=prompt&token=<?= session.token ?>">
+        <a class="sidebar-link" href="promptlibrary.html">
           <span class="ic">📋</span> Prompt Library
         </a>
         <a class="sidebar-link" href="#produk-saya">
@@ -150,100 +115,43 @@
         <a class="sidebar-link" href="#update">
           <span class="ic">🚀</span> Update
         </a>
-        <? if (session.role === 'admin') { ?>
-        <a class="sidebar-link" href="?page=admin&token=<?= session.token ?>">
+        <a class="sidebar-link" id="navAdmin" href="admin.html" style="display: none;">
           <span class="ic">⚙️</span> Admin Panel
         </a>
-        <? } ?>
       </nav>
-
       <div class="sidebar-divider"></div>
-
       <div class="sidebar-user">
-        <div class="avatar"><?= session.nama.charAt(0).toUpperCase() ?></div>
+        <div class="avatar" id="avatarInitial">U</div>
         <div style="overflow:hidden;">
-          <div class="sidebar-user-name"><?= session.nama ?></div>
-          <div class="sidebar-user-role"><?= session.role === 'admin' ? 'Admin' : 'Member' ?></div>
+          <div class="sidebar-user-name" id="sidebarUserName">Memuat...</div>
+          <div class="sidebar-user-role" id="sidebarUserRole">-</div>
         </div>
-        <button class="logout-btn" onclick="handleLogout()" title="Keluar">⎋</button>
+        <button class="logout-btn" onclick="logout()" title="Keluar">⎋</button>
       </div>
     </aside>
 
-    <!-- ============ MAIN CONTENT ============ -->
     <main class="main">
-      <h1 class="greeting">👋 Halo, <?= session.nama ?></h1>
+      <h1 class="greeting">👋 Halo, <span id="greetingName">Member</span></h1>
       <p class="greeting-sub">Senang lihat kamu lagi. Ini progress belajar kamu sejauh ini.</p>
 
-      <!-- ---- Produk Anda ---- -->
       <div class="section-title" id="produk-saya">📦 Produk Anda</div>
-      <div class="produk-owned-grid">
-        <? if (dashboardData.myProducts && dashboardData.myProducts.length > 0) { ?>
-          <? for (var i = 0; i < dashboardData.myProducts.length; i++) { ?>
-            <? var p = dashboardData.myProducts[i]; ?>
-            <a href="?page=produk&id=<?= p.id ?>&token=<?= session.token ?>" class="produk-owned-card" style="display:block;">
-              <div class="produk-owned-top">
-                <div class="produk-owned-nama"><?= p.nama ?></div>
-                <? if (p.expired) { ?><span class="badge-expired">Kedaluwarsa</span><? } ?>
-              </div>
-              <div class="progress-bar-track">
-                <div class="progress-bar-fill" style="width:<?= p.progressPercent ?>%;"></div>
-              </div>
-              <div class="progress-label">
-                <span>Progress <?= p.progressPercent ?>%</span>
-                <span><?= p.selesaiKonten ?>/<?= p.totalKonten ?> selesai</span>
-              </div>
-            </a>
-          <? } ?>
-        <? } else { ?>
-          <div class="empty-state" style="grid-column:1/-1;">
-            Kamu belum memiliki produk apa pun.<br>
-            <small>Kalau kamu sudah membeli, pastikan proses "Buat Akun" dengan kode akses sudah benar.</small>
-          </div>
-        <? } ?>
+      <div class="produk-owned-grid" id="produkGrid">
+        <div class="empty-state">Sedang mengambil data produk...</div>
       </div>
 
-      <!-- ---- Lanjutkan Belajar ---- -->
-      <? if (dashboardData.continueLearning) { ?>
-        <div class="section-title">📖 Lanjutkan Belajar</div>
-        <div class="continue-card">
-          <div class="continue-modul-nama"><?= dashboardData.continueLearning.produkNama ?></div>
-          <div class="continue-produk-nama"><?= dashboardData.continueLearning.modulNama ?></div>
-          <? var kl = dashboardData.continueLearning.kontenList; ?>
-          <? for (var j = 0; j < kl.length; j++) { ?>
-            <? var k = kl[j]; ?>
-            <? var icon = k.tipe === 'video' ? '▶️' : (k.tipe === 'pdf' ? '📄' : (k.tipe === 'prompt' ? '📋' : '📥')); ?>
-            <a class="konten-row" href="<?= k.tipe === 'video' ? '?page=video&id=' + k.id + '&token=' + session.token : '?page=produk&id=' + dashboardData.continueLearning.produkId + '&token=' + session.token ?>" style="display:flex;">
-              <span class="ic"><?= icon ?></span>
-              <?= k.judul ?>
-            </a>
-          <? } ?>
-        </div>
-      <? } ?>
+      <div id="continueLearningContainer"></div>
 
-      <!-- ---- Update Terbaru ---- -->
       <div class="section-title" id="update">🚀 Update Terbaru</div>
-      <div class="continue-card">
-        <? if (dashboardData.updates && dashboardData.updates.length > 0) { ?>
-          <? for (var u = 0; u < dashboardData.updates.length; u++) { ?>
-            <? var up = dashboardData.updates[u]; ?>
-            <div class="update-item">
-              <div class="update-judul"><?= up.judul ?></div>
-              <p style="font-size:13px;margin:2px 0;"><?= up.isi ?></p>
-              <div class="update-tanggal"><?= up.tanggal ?></div>
-            </div>
-          <? } ?>
-        <? } else { ?>
-          <p style="font-size:13px;margin:0;">Belum ada update terbaru.</p>
-        <? } ?>
+      <div class="continue-card" id="updatesContainer">
+        <p style="font-size:13px;margin:0;">Memuat update...</p>
       </div>
 
-      <!-- ---- Bonus & FAQ ---- -->
       <div class="section-title">🎁 Bonus &amp; Bantuan</div>
       <div class="info-grid">
         <div class="info-card">
           <h3>🎁 Bonus Eksklusif</h3>
           <p>Cek koleksi template & prompt bonus yang tersedia untuk member.</p>
-          <a href="?page=prompt&token=<?= session.token ?>" class="btn btn-primary btn-sm">Lihat Bonus</a>
+          <a href="promptlibrary.html" class="btn btn-primary btn-sm">Lihat Bonus</a>
         </div>
         <div class="info-card" style="background:var(--bg);border:1px solid var(--border);">
           <h3>❓ Butuh Bantuan?</h3>
@@ -251,28 +159,133 @@
           <a href="mailto:admin@email.com" class="btn btn-outline btn-sm">Hubungi Admin</a>
         </div>
       </div>
-
     </main>
   </div>
 
   <script src="js/script.js"></script>
+  
   <script>
-    var CURRENT_TOKEN = <?!= JSON.stringify(session.token) ?>;
-    var WEBAPP_URL = <?!= JSON.stringify(webAppUrl) ?>;
-    cleanTokenFromUrl('dashboard');
+    // --- LOGIKA UTAMA DASHBOARD ---
+    document.addEventListener('DOMContentLoaded', async function () {
+      const token = localStorage.getItem('userToken');
+      
+      // 1. Jika belum login (tidak ada token), lempar ke halaman login
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
+      }
 
-    function handleLogout() {
-      if (!confirm('Yakin ingin keluar?')) return;
-      showLoading('Keluar dari akun...');
-      google.script.run
-        .withSuccessHandler(function () {
-          try { localStorage.removeItem('member_token'); } catch (err) {}
-          window.top.location.href = WEBAPP_URL + '?page=landing';
-        })
-        .withFailureHandler(function () {
-          window.top.location.href = WEBAPP_URL + '?page=landing';
-        })
-        .logoutUser(CURRENT_TOKEN);
+      // 2. Ambil data dari Google Apps Script
+      showLoading('Menyiapkan dashboard kamu...');
+      const res = await fetchAPI('getDashboardBundle');
+      hideLoading();
+
+      // 3. Jika sesi habis/gagal
+      if (!res.success) {
+        alert("Sesi Anda telah berakhir atau terjadi kesalahan. Silakan login kembali.");
+        logout();
+        return;
+      }
+
+      // 4. Jika sukses, Render Data ke HTML
+      renderDashboard(res.data);
+    });
+
+    // --- FUNGSI UNTUK MENGISI HTML DENGAN DATA ---
+    function renderDashboard(data) {
+      // (Asumsi data Google mengembalikan objek session dan dashboardData)
+      const user = data.session || data; 
+      const dashData = data.dashboardData || data;
+
+      // A. Update Profil & Navigasi
+      if (user.nama) {
+        document.getElementById('greetingName').textContent = user.nama;
+        document.getElementById('sidebarUserName').textContent = user.nama;
+        document.getElementById('avatarInitial').textContent = user.nama.charAt(0).toUpperCase();
+      }
+      if (user.role) {
+        document.getElementById('sidebarUserRole').textContent = user.role;
+        if (user.role === 'admin') {
+          document.getElementById('navAdmin').style.display = 'flex'; // Tampilkan menu admin
+        }
+      }
+
+      // B. Render Produk Saya
+      const produkGrid = document.getElementById('produkGrid');
+      if (dashData.myProducts && dashData.myProducts.length > 0) {
+        produkGrid.innerHTML = ''; // Bersihkan loading
+        dashData.myProducts.forEach(p => {
+          const isExpired = p.expired ? `<span class="badge-expired">Kedaluwarsa</span>` : '';
+          const cardHtml = `
+            <a href="produk.html?id=${p.id}" class="produk-owned-card">
+              <div class="produk-owned-top">
+                <div class="produk-owned-nama">${p.nama}</div>
+                ${isExpired}
+              </div>
+              <div class="progress-bar-track">
+                <div class="progress-bar-fill" style="width: ${p.progressPercent}%;"></div>
+              </div>
+              <div class="progress-label">
+                <span>Progress ${p.progressPercent}%</span>
+                <span>${p.selesaiKonten}/${p.totalKonten} selesai</span>
+              </div>
+            </a>
+          `;
+          produkGrid.innerHTML += cardHtml;
+        });
+      } else {
+        produkGrid.innerHTML = `
+          <div class="empty-state">
+            Kamu belum memiliki produk apa pun.<br>
+            <small>Kalau kamu sudah membeli, pastikan proses "Buat Akun" dengan kode akses sudah benar.</small>
+          </div>
+        `;
+      }
+
+      // C. Render Lanjutkan Belajar
+      const contContainer = document.getElementById('continueLearningContainer');
+      if (dashData.continueLearning) {
+        const cl = dashData.continueLearning;
+        let kontenHtml = '';
+        
+        if (cl.kontenList) {
+          cl.kontenList.forEach(k => {
+            let icon = k.tipe === 'video' ? '▶️' : (k.tipe === 'pdf' ? '📄' : (k.tipe === 'prompt' ? '📋' : '📥'));
+            let link = k.tipe === 'video' ? `videoplayer.html?id=${k.id}` : `produk.html?id=${cl.produkId}`;
+            kontenHtml += `
+              <a class="konten-row" href="${link}">
+                <span class="ic">${icon}</span> ${k.judul}
+              </a>
+            `;
+          });
+        }
+
+        contContainer.innerHTML = `
+          <div class="section-title">📖 Lanjutkan Belajar</div>
+          <div class="continue-card">
+            <div class="continue-modul-nama">${cl.produkNama || ''}</div>
+            <div class="continue-produk-nama">${cl.modulNama || ''}</div>
+            ${kontenHtml}
+          </div>
+        `;
+      }
+
+      // D. Render Update Terbaru
+      const updatesContainer = document.getElementById('updatesContainer');
+      if (dashData.updates && dashData.updates.length > 0) {
+        updatesContainer.innerHTML = '';
+        dashData.updates.forEach(u => {
+          updatesContainer.innerHTML += `
+            <div class="update-item">
+              <div class="update-judul">${u.judul}</div>
+              <p style="font-size:13px;margin:2px 0;">${u.isi}</p>
+              <div class="update-tanggal">${u.tanggal}</div>
+            </div>
+          `;
+        });
+      } else {
+        updatesContainer.innerHTML = `<p style="font-size:13px;margin:0;">Belum ada update terbaru.</p>`;
+      }
     }
   </script>
 </body>
