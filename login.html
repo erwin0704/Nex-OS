@@ -1,312 +1,213 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <base target="_top" href="<?= webAppUrl ?>">
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Masuk / Daftar - Studio Kamu</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: { colors: { accent: '#4A6B5D', accentsoft: '#EBF1ED', inksoft: '#64748B' } }
+      }
+    }
+  </script>
+
   <link rel="stylesheet" href="css/style.css">
-  <style>
-    /* Sedikit gaya tambahan khusus halaman auth */
-    .auth-back { font-size: 13px; color: var(--ink-soft); margin-bottom: 20px; display: inline-flex; align-items: center; gap: 6px; }
-    .auth-back:hover { color: var(--accent); }
-    .auth-foot { text-align: center; font-size: 13px; color: var(--ink-soft); margin-top: 18px; }
-    .link-btn { background: none; border: none; color: var(--accent); font-weight: 600; font-size: inherit; padding: 0; }
-    .link-btn:hover { text-decoration: underline; }
-    .view { display: none; }
-    .view.active { display: block; }
-    .forgot-trigger { text-align: right; margin: -8px 0 16px; }
-    .forgot-trigger button { font-size: 12px; }
-  </style>
 </head>
-<body>
+<body class="bg-[#F4F7F5]">
+
   <div class="auth-wrap">
-    <div style="width:100%;max-width:420px;">
-      <a href="?page=landing" class="auth-back">← Kembali ke Beranda</a>
+    <div class="w-full max-w-md">
+      
+      <a href="index.html" class="inline-block mb-4 text-sm font-medium text-inksoft hover:text-accent transition-colors">
+        &larr; Kembali ke Beranda
+      </a>
 
       <div class="auth-card">
-
-        <!-- ============ VIEW: LOGIN & DAFTAR ============ -->
-        <div id="viewAuth" class="view active">
-          <div class="auth-tabs">
-            <div class="auth-tab active" id="tabLogin" onclick="switchTab('login')">Masuk</div>
-            <div class="auth-tab" id="tabDaftar" onclick="switchTab('daftar')">Buat Akun</div>
-          </div>
-
-          <div id="formMsgAuth" class="form-msg"></div>
-
-          <!-- Form Login -->
-          <form id="formLogin" onsubmit="return handleLogin(event)">
-            <div class="field">
-              <label for="loginEmail">Email</label>
-              <input type="email" id="loginEmail" required autocomplete="email" placeholder="nama@email.com">
-            </div>
-            <div class="field">
-              <label for="loginPassword">Password</label>
-              <div class="password-field">
-                <input type="password" id="loginPassword" required autocomplete="current-password" placeholder="••••••••">
-                <button type="button" class="password-toggle" onclick="togglePassword('loginPassword', this)" aria-label="Tampilkan password">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                </button>
-              </div>
-            </div>
-            <div class="forgot-trigger">
-              <button type="button" class="link-btn" onclick="switchTab('lupa')">Lupa password?</button>
-            </div>
-            <button type="submit" class="btn btn-primary btn-block" id="btnLogin" data-original-text="Masuk">Masuk</button>
-          </form>
-
-          <!-- Form Daftar -->
-          <form id="formDaftar" onsubmit="return handleDaftar(event)" style="display:none;">
-            <div class="field">
-              <label for="daftarNama">Nama Lengkap</label>
-              <input type="text" id="daftarNama" required autocomplete="name" placeholder="Nama kamu">
-            </div>
-            <div class="field">
-              <label for="daftarEmail">Email</label>
-              <input type="email" id="daftarEmail" required autocomplete="email" placeholder="Gunakan email saat beli di Lynk.id">
-            </div>
-            <div class="field">
-              <label for="daftarPassword">Buat Password</label>
-              <div class="password-field">
-                <input type="password" id="daftarPassword" required autocomplete="new-password" placeholder="Minimal 6 karakter">
-                <button type="button" class="password-toggle" onclick="togglePassword('daftarPassword', this)" aria-label="Tampilkan password">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                </button>
-              </div>
-            </div>
-            <div class="field">
-              <label for="daftarKode">Kode Akses</label>
-              <input type="text" id="daftarKode" required placeholder="Contoh: PROMPT2026-A1B2" style="text-transform:uppercase;">
-              <div class="field-hint">Kode ini dikirim ke email kamu setelah pembelian di Lynk.id selesai.</div>
-            </div>
-            <button type="submit" class="btn btn-primary btn-block" id="btnDaftar" data-original-text="Buat Akun">Buat Akun</button>
-          </form>
-
-          <div class="auth-foot" id="footLogin">
-            Belum punya akun? <button type="button" class="link-btn" onclick="switchTab('daftar')">Buat akun</button>
-          </div>
-          <div class="auth-foot" id="footDaftar" style="display:none;">
-            Sudah punya akun? <button type="button" class="link-btn" onclick="switchTab('login')">Masuk</button>
-          </div>
+        <div class="auth-tabs" id="tabContainer">
+          <div class="auth-tab active" id="btnTabLogin" onclick="switchTab('login')">Masuk</div>
+          <div class="auth-tab" id="btnTabDaftar" onclick="switchTab('daftar')">Buat Akun</div>
         </div>
 
-        <!-- ============ VIEW: LUPA PASSWORD ============ -->
-        <div id="viewLupa" class="view">
-          <h3 style="margin-bottom:6px;">Lupa Password</h3>
-          <p style="font-size:14px;margin-bottom:20px;">Masukkan email akun kamu. Kami akan mengirim link untuk membuat password baru.</p>
+        <div id="formMsgAuth" class="form-msg"></div>
+
+        <form id="formLogin">
+          <div class="field">
+            <label>Email</label>
+            <input type="email" id="loginEmail" placeholder="nama@email.com" required>
+          </div>
+          <div class="field">
+            <label>Password</label>
+            <input type="password" id="loginPassword" placeholder="••••••••" required>
+          </div>
+          <div class="flex justify-between items-center mt-2 mb-6">
+            <label class="flex items-center text-sm text-inksoft cursor-pointer">
+              <input type="checkbox" class="mr-2 rounded border-gray-300 text-accent focus:ring-accent"> Ingat saya
+            </label>
+            <a href="#" onclick="switchTab('lupa')" class="text-sm font-medium text-accent hover:underline">Lupa password?</a>
+          </div>
+          <button type="submit" id="btnLogin" class="btn btn-primary btn-block">Masuk</button>
+        </form>
+
+        <form id="formDaftar" style="display: none;">
+          <div class="field">
+            <label>Nama Lengkap</label>
+            <input type="text" id="daftarNama" placeholder="Nama Kamu" required>
+          </div>
+          <div class="field">
+            <label>Email</label>
+            <input type="email" id="daftarEmail" placeholder="nama@email.com" required>
+          </div>
+          <div class="field">
+            <label>Password</label>
+            <input type="password" id="daftarPassword" placeholder="Buat password (min. 6 karakter)" required minlength="6">
+          </div>
+          <div class="field">
+            <label>Kode Akses (Opsional)</label>
+            <input type="text" id="daftarKode" placeholder="Kode dari pembelian (jika ada)">
+          </div>
+          <button type="submit" id="btnDaftar" class="btn btn-primary btn-block mt-6">Buat Akun</button>
+        </form>
+
+        <form id="formLupa" style="display: none;">
+          <h3 class="font-bold text-lg mb-2">Reset Password</h3>
+          <p class="text-sm text-inksoft mb-4">Masukkan email yang terdaftar. Kami akan mengeceknya di sistem.</p>
           <div id="formMsgLupa" class="form-msg"></div>
-          <form id="formLupa" onsubmit="return handleLupaPassword(event)">
-            <div class="field">
-              <label for="lupaEmail">Email</label>
-              <input type="email" id="lupaEmail" required placeholder="nama@email.com">
-            </div>
-            <button type="submit" class="btn btn-primary btn-block" id="btnLupa" data-original-text="Kirim Link Reset">Kirim Link Reset</button>
-          </form>
-          <div class="auth-foot">
-            <button type="button" class="link-btn" onclick="switchTab('login')">← Kembali ke halaman masuk</button>
+          
+          <div class="field">
+            <label>Email Anda</label>
+            <input type="email" id="lupaEmail" placeholder="nama@email.com" required>
           </div>
-        </div>
-
-        <!-- ============ VIEW: SET PASSWORD BARU (dari link email) ============ -->
-        <div id="viewReset" class="view">
-          <h3 style="margin-bottom:6px;">Buat Password Baru</h3>
-          <p style="font-size:14px;margin-bottom:20px;">Masukkan password baru untuk akun kamu.</p>
-          <div id="formMsgReset" class="form-msg"></div>
-          <form id="formReset" onsubmit="return handleResetPassword(event)">
-            <div class="field">
-              <label for="resetPasswordBaru">Password Baru</label>
-              <div class="password-field">
-                <input type="password" id="resetPasswordBaru" required placeholder="Minimal 6 karakter">
-                <button type="button" class="password-toggle" onclick="togglePassword('resetPasswordBaru', this)" aria-label="Tampilkan password">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                </button>
-              </div>
-            </div>
-            <button type="submit" class="btn btn-primary btn-block" id="btnReset" data-original-text="Simpan Password Baru">Simpan Password Baru</button>
-          </form>
-        </div>
+          
+          <button type="submit" id="btnLupa" class="btn btn-primary btn-block mt-4">Kirim Permintaan Reset</button>
+          
+          <div class="text-center mt-4">
+            <a href="#" onclick="switchTab('login')" class="text-sm text-inksoft hover:text-accent">&larr; Kembali ke Login</a>
+          </div>
+        </form>
 
       </div>
     </div>
   </div>
 
+  <script src="js/script.js"></script>
+
   <script>
-    // Toggle tampilkan/sembunyikan password + ganti ikon mata terbuka/tertutup
-    var EYE_OPEN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
-    var EYE_CLOSED = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a20.6 20.6 0 0 1 5.06-6.06M9.9 4.24A10.4 10.4 0 0 1 12 4c7 0 11 8 11 8a20.6 20.6 0 0 1-3.22 4.44M14.12 14.12a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>';
-
-    function togglePassword(inputId, btnEl) {
-      var input = document.getElementById(inputId);
-      var isHidden = input.type === 'password';
-      input.type = isHidden ? 'text' : 'password';
-      btnEl.innerHTML = isHidden ? EYE_CLOSED : EYE_OPEN;
-      btnEl.setAttribute('aria-label', isHidden ? 'Sembunyikan password' : 'Tampilkan password');
-    }
-  </script>
-  <?!= include('JavaScript'); ?>
-  <script>
-    // Parameter dikirim dari server (Code.gs) lewat template
-    var URL_PARAMS = <?!= JSON.stringify(params || {}) ?>;
-    // URL absolut web app (/exec) — dipakai untuk redirect JS supaya tidak salah arah ke domain iframe
-    var WEBAPP_URL = <?!= JSON.stringify(webAppUrl) ?>;
-
-    // Kalau ada ?reset=xxx di URL, langsung tampilkan form set password baru
-    if (URL_PARAMS.reset) {
-      switchTab('reset');
-    }
-
-    function switchTab(tab) {
-      document.getElementById('viewAuth').classList.remove('active');
-      document.getElementById('viewLupa').classList.remove('active');
-      document.getElementById('viewReset').classList.remove('active');
-
-      if (tab === 'lupa') {
-        document.getElementById('viewLupa').classList.add('active');
-        return;
+    // ----------------------------------------------------
+    // 1. LOGIKA UNTUK BERPINDAH TAB
+    // ----------------------------------------------------
+    function switchTab(tabName) {
+      // Sembunyikan semua form terlebih dahulu
+      document.getElementById('formLogin').style.display = 'none';
+      document.getElementById('formDaftar').style.display = 'none';
+      document.getElementById('formLupa').style.display = 'none';
+      
+      let tabContainer = document.getElementById('tabContainer');
+      
+      if (tabName === 'login') {
+        document.getElementById('formLogin').style.display = 'block';
+        tabContainer.style.display = 'flex';
+        document.getElementById('btnTabLogin').classList.add('active');
+        document.getElementById('btnTabDaftar').classList.remove('active');
+      } 
+      else if (tabName === 'daftar') {
+        document.getElementById('formDaftar').style.display = 'block';
+        tabContainer.style.display = 'flex';
+        document.getElementById('btnTabDaftar').classList.add('active');
+        document.getElementById('btnTabLogin').classList.remove('active');
+      } 
+      else if (tabName === 'lupa') {
+        document.getElementById('formLupa').style.display = 'block';
+        tabContainer.style.display = 'none'; // Sembunyikan tombol tab saat di form Lupa Password
       }
-      if (tab === 'reset') {
-        document.getElementById('viewReset').classList.add('active');
-        return;
-      }
-
-      document.getElementById('viewAuth').classList.add('active');
-      var isLogin = tab === 'login';
-      document.getElementById('tabLogin').classList.toggle('active', isLogin);
-      document.getElementById('tabDaftar').classList.toggle('active', !isLogin);
-      document.getElementById('formLogin').style.display = isLogin ? 'block' : 'none';
-      document.getElementById('formDaftar').style.display = isLogin ? 'none' : 'block';
-      document.getElementById('footLogin').style.display = isLogin ? 'block' : 'none';
-      document.getElementById('footDaftar').style.display = isLogin ? 'none' : 'block';
+      
+      // Bersihkan pesan error jika ada
       hideFormMessage('formMsgAuth');
+      hideFormMessage('formMsgLupa');
     }
 
-    // ---------- LOGIN ----------
-    // Tambahkan kata 'async' di depan function karena kita mengambil data dari server luar
-    async function handleLogin(e) {
+    // ----------------------------------------------------
+    // 2. LOGIKA FETCH API (Ke Google Apps Script)
+    // ----------------------------------------------------
+    
+    // --- AKSI LOGIN ---
+    document.getElementById('formLogin').addEventListener('submit', async function(e) {
       e.preventDefault();
-      var btn = document.getElementById('btnLogin');
-      hideFormMessage('formMsgAuth');
+      const btn = document.getElementById('btnLogin');
+      
       setButtonLoading(btn, true, 'Memeriksa...');
-      showLoading('Memeriksa akun kamu...');
+      hideFormMessage('formMsgAuth');
 
-      var data = {
+      const data = {
         email: document.getElementById('loginEmail').value,
         password: document.getElementById('loginPassword').value
       };
 
-      // 🔴 MANTRA BARU: Menggantikan google.script.run.loginUser(data)
-      var res = await fetchAPI('loginUser', data);
+      const res = await fetchAPI('loginUser', data);
+      setButtonLoading(btn, false, 'Masuk', 'Masuk');
 
-      setButtonLoading(btn, false);
-      
-      // Jika server membalas 'success: true'
       if (res.success) {
-        // Simpan token di memori browser
-        try { localStorage.setItem('userToken', res.token); } catch (err) {}
-        showLoading('Berhasil! Mengarahkan ke dashboard...');
+        showFormMessage('formMsgAuth', 'Berhasil! Mengarahkan ke dashboard...', 'success');
+        // Simpan token ke localStorage agar bisa dipakai di dashboard
+        localStorage.setItem('userToken', res.data ? res.data.token : res.token);
         
-        // Arahkan ke file dashboard.html di folder yang sama
-        setTimeout(function() {
-          window.location.href = 'dashboard.html';
-        }, 1000);
+        setTimeout(() => { window.location.href = 'dashboard.html'; }, 1000);
       } else {
-        // Jika gagal (contoh: password salah)
-        hideLoading();
         showFormMessage('formMsgAuth', res.message, 'error');
       }
+    });
 
-      return false;
-    }
-
-    // ---------- DAFTAR ----------
-    async function handleDaftar(e) {
+    // --- AKSI DAFTAR ---
+    document.getElementById('formDaftar').addEventListener('submit', async function(e) {
       e.preventDefault();
-      var btn = document.getElementById('btnDaftar');
+      const btn = document.getElementById('btnDaftar');
+      
+      setButtonLoading(btn, true, 'Membuat Akun...');
       hideFormMessage('formMsgAuth');
-      setButtonLoading(btn, true, 'Membuat akun...');
-      showLoading('Membuat akun kamu...');
 
-      var data = {
+      const data = {
         nama: document.getElementById('daftarNama').value,
         email: document.getElementById('daftarEmail').value,
         password: document.getElementById('daftarPassword').value,
         kodeAkses: document.getElementById('daftarKode').value
       };
 
-      // 🔴 MANTRA BARU: Menggantikan google.script.run.registerUser(data)
-      var res = await fetchAPI('registerUser', data);
+      const res = await fetchAPI('registerUser', data);
+      setButtonLoading(btn, false, 'Buat Akun', 'Buat Akun');
 
-      setButtonLoading(btn, false);
-      hideLoading();
-      
       if (res.success) {
-        showFormMessage('formMsgAuth', res.message + ' Silakan masuk.', 'success');
+        showFormMessage('formMsgAuth', 'Akun berhasil dibuat! Silakan masuk.', 'success');
         document.getElementById('formDaftar').reset();
-        setTimeout(function () { switchTab('login'); }, 1200);
+        
+        // Pindah ke tab login setelah 1.5 detik
+        setTimeout(() => { switchTab('login'); }, 1500);
       } else {
         showFormMessage('formMsgAuth', res.message, 'error');
       }
+    });
 
-      return false;
-    }
-
-    // ---------- LUPA PASSWORD ----------
-    async function handleLupaPassword(e) {
+    // --- AKSI LUPA PASSWORD ---
+    document.getElementById('formLupa').addEventListener('submit', async function(e) {
       e.preventDefault();
-      var btn = document.getElementById('btnLupa');
-      hideFormMessage('formMsgLupa');
-      setButtonLoading(btn, true, 'Mengirim...');
-      showLoading('Mengirim link reset...');
-
-      var data = {
-        email: document.getElementById('lupaEmail').value
-      };
-
-      // 🔴 MANTRA BARU: Menggantikan google.script.run.requestPasswordReset(email)
-      var res = await fetchAPI('requestPasswordReset', data);
-
-      setButtonLoading(btn, false);
-      hideLoading();
+      const btn = document.getElementById('btnLupa');
       
+      setButtonLoading(btn, true, 'Mengirim...');
+      hideFormMessage('formMsgLupa');
+
+      const data = { email: document.getElementById('lupaEmail').value };
+      const res = await fetchAPI('requestPasswordReset', data);
+      
+      setButtonLoading(btn, false, 'Kirim Permintaan Reset', 'Kirim Permintaan Reset');
+
       if (res.success) {
         showFormMessage('formMsgLupa', res.message, 'success');
         document.getElementById('formLupa').reset();
       } else {
-         showFormMessage('formMsgLupa', res.message, 'error');
+        showFormMessage('formMsgLupa', res.message, 'error');
       }
-
-      return false;
-    }
-
-    // ---------- SET PASSWORD BARU ----------
-    async function handleResetPassword(e) {
-      e.preventDefault();
-      var btn = document.getElementById('btnReset');
-      hideFormMessage('formMsgReset');
-      setButtonLoading(btn, true, 'Menyimpan...');
-      showLoading('Menyimpan password baru...');
-
-      var data = {
-        resetToken: URL_PARAMS.reset,
-        newPassword: document.getElementById('resetPasswordBaru').value
-      };
-
-      // 🔴 MANTRA BARU: Menggantikan google.script.run.resetPassword(token, pass)
-      var res = await fetchAPI('resetPassword', data);
-
-      setButtonLoading(btn, false);
-      hideLoading();
-
-      if (res.success) {
-        showFormMessage('formMsgReset', res.message, 'success');
-        setTimeout(function () {
-          window.location.href = 'login.html';
-        }, 1500);
-      } else {
-        showFormMessage('formMsgReset', res.message, 'error');
-      }
-
-      return false;
-    }
+    });
   </script>
 </body>
 </html>
