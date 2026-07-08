@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <base target="_top" href="<?= webAppUrl ?>">
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .app-shell { display: flex; min-height: 100vh; }
+    .sidebar {
+      width: 220px; flex-shrink: 0; background: var(--surface);
+      border-right: 1px solid var(--border); padding: 20px 14px;
+      display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh;
+    }
+    .sidebar-brand { font-family: var(--font-display); font-weight: 600; font-size: 16px; padding: 6px 10px 18px; }
+    .sidebar-link {
+      display: flex; align-items: center; gap: 10px; padding: 9px 10px;
+      border-radius: 8px; font-size: 14px; color: var(--ink-soft); font-weight: 500; cursor: pointer;
+    }
+    .sidebar-link:hover { background: var(--bg); color: var(--ink); }
+    .sidebar-link.active { background: var(--accent-soft); color: var(--accent); }
+    .sidebar-divider { height: 1px; background: var(--border); margin: 12px 4px; }
+
+    .main { flex: 1; padding: 32px 40px; max-width: 1100px; }
+    .page-title { font-size: 24px; margin-bottom: 24px; }
+    .tab-view { display: none; }
+    .tab-view.active { display: block; }
+
+    /* Stat cards */
+    .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 8px; }
+    .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; }
+    .stat-num { font-family: var(--font-display); font-size: 28px; font-weight: 600; color: var(--accent); }
+    .stat-label { font-size: 12px; color: var(--ink-soft); margin-top: 4px; }
+
+    /* Card container umum */
+    .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; margin-bottom: 20px; }
+    .panel-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .panel-head h3 { font-size: 16px; margin: 0; }
+
+    /* Form grid sederhana */
+    .form-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 12px; }
+    .form-row.single { grid-template-columns: 1fr; }
+    .form-row label { font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px; }
+    .form-row input, .form-row select, .form-row textarea {
+      width: 100%; padding: 9px 11px; border: 1px solid var(--border);
+      border-radius: 8px; font-size: 13px; font-family: var(--font-body); background: var(--bg);
+    }
+    .form-row textarea { resize: vertical; min-height: 60px; }
+
+    /* Tabel */
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-soft); padding: 8px 10px; border-bottom: 1px solid var(--border); }
+    td { padding: 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    .row-actions { display: flex; gap: 6px; }
+    .badge { font-size: 11px; padding: 3px 8px; border-radius: 6px; font-weight: 600; }
+    .badge.aktif { background: #ECFDF5; color: #047857; }
+    .badge.nonaktif { background: #FEF2F2; color: var(--danger); }
+    .badge.admin { background: var(--accent-soft); color: var(--accent); }
+    .breadcrumb { font-size: 13px; color: var(--ink-soft); margin-bottom: 14px; }
+    .breadcrumb a { color: var(--accent); cursor: pointer; }
+    .empty-row td { text-align: center; color: var(--ink-soft); padding: 24px; }
+    .code-mono { font-family: var(--font-mono); font-size: 12px; }
+    .toast {
+      position: fixed; bottom: 24px; right: 24px; background: var(--ink); color: #fff;
+      padding: 12px 18px; border-radius: 10px; font-size: 13px; opacity: 0; transform: translateY(10px);
+      transition: all 0.25s ease; pointer-events: none; z-index: 100;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 900px) {
+      .app-shell { flex-direction: column; }
+      .sidebar { width: 100%; height: auto; flex-direction: row; overflow-x: auto; }
+      .main { padding: 20px; }
+      .stat-grid { grid-template-columns: repeat(2, 1fr); }
+      .form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">Admin Panel</div>
+      <nav id="sidebarNav">
+        <div class="sidebar-link active" data-tab="statistik">📊 Statistik</div>
+        <div class="sidebar-link" data-tab="produk">📦 Produk &amp; Konten</div>
+        <div class="sidebar-link" data-tab="prompt">📋 Prompt Library</div>
+        <div class="sidebar-link" data-tab="kodeakses">🔑 Kode Akses</div>
+        <div class="sidebar-link" data-tab="users">👤 Users</div>
+        <div class="sidebar-link" data-tab="update">🚀 Update</div>
+      </nav>
+      <div class="sidebar-divider"></div>
+      <a href="?page=dashboard&token=<?= session.token ?>" class="sidebar-link">← Kembali ke Dashboard</a>
+    </aside>
+
+    <main class="main">
+      <!-- ========== STATISTIK ========== -->
+      <div class="tab-view active" id="tab-statistik">
+        <h1 class="page-title">📊 Statistik</h1>
+        <div class="stat-grid" id="statGrid">
+          <div class="stat-card"><div class="stat-num">…</div><div class="stat-label">Memuat</div></div>
+        </div>
+      </div>
+
+      <!-- ========== PRODUK & KONTEN ========== -->
+      <div class="tab-view" id="tab-produk">
+        <h1 class="page-title">📦 Produk &amp; Konten</h1>
+        <div class="breadcrumb" id="produkBreadcrumb"></div>
+        <div id="produkArea"></div>
+      </div>
+
+      <!-- ========== PROMPT LIBRARY ========== -->
+      <div class="tab-view" id="tab-prompt">
+        <h1 class="page-title">📋 Prompt Library</h1>
+        <div class="panel">
+          <div class="panel-head"><h3>Tambah Prompt Baru</h3></div>
+          <div class="form-row">
+            <div>
+              <label>Untuk Produk</label>
+              <select id="promptProduk"></select>
+            </div>
+            <div>
+              <label>Kategori</label>
+              <input id="promptKategori" placeholder="Contoh: Copywriting, SEO, Konten">
+            </div>
+          </div>
+          <div class="form-row single">
+            <div><label>Judul Prompt</label><input id="promptJudul"></div>
+          </div>
+          <div class="form-row single">
+            <div><label>Isi Prompt</label><textarea id="promptIsi" style="min-height:100px;"></textarea></div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="createPrompt()">Tambah Prompt</button>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Daftar Prompt</h3></div>
+          <table>
+            <thead><tr><th>Judul</th><th>Kategori</th><th>Produk</th><th></th></tr></thead>
+            <tbody id="promptTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ========== KODE AKSES ========== -->
+      <div class="tab-view" id="tab-kodeakses">
+        <h1 class="page-title">🔑 Kode Akses</h1>
+        <div class="panel">
+          <div class="panel-head"><h3>Generate Kode Akses Baru</h3></div>
+          <div class="form-row">
+            <div>
+              <label>Untuk Produk</label>
+              <select id="genKodeProduk"></select>
+            </div>
+            <div>
+              <label>Jumlah Kode</label>
+              <input type="number" id="genKodeJumlah" value="1" min="1" max="100">
+            </div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="generateKode()">Generate Kode</button>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Daftar Kode Akses</h3></div>
+          <table>
+            <thead><tr><th>Kode</th><th>Produk</th><th>Status</th><th>Dipakai Oleh</th><th></th></tr></thead>
+            <tbody id="kodeAksesTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ========== USERS ========== -->
+      <div class="tab-view" id="tab-users">
+        <h1 class="page-title">👤 Users</h1>
+        <div class="panel">
+          <table>
+            <thead><tr><th>Nama</th><th>Email</th><th>Role</th><th>Status</th><th>Terakhir Login</th><th></th></tr></thead>
+            <tbody id="usersTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ========== UPDATE ========== -->
+      <div class="tab-view" id="tab-update">
+        <h1 class="page-title">🚀 Update / Pengumuman</h1>
+        <div class="panel">
+          <div class="panel-head"><h3>Tulis Update Baru</h3></div>
+          <div class="form-row single">
+            <div><label>Judul</label><input type="text" id="updateJudul"></div>
+          </div>
+          <div class="form-row single">
+            <div><label>Isi</label><textarea id="updateIsi"></textarea></div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="createUpdate()">Publikasikan</button>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Riwayat Update</h3></div>
+          <table>
+            <thead><tr><th>Judul</th><th>Tanggal</th><th></th></tr></thead>
+            <tbody id="updateTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="js/script.js"></script>
+  <script>
+    var TOKEN = <?!= JSON.stringify(session.token) ?>;
+    var WEBAPP_URL = <?!= JSON.stringify(webAppUrl) ?>;
+    cleanTokenFromUrl('admin');
+    var STATE = { produkList: [], selectedProduk: null, modulList: [], selectedModul: null, kontenList: [] };
+
+    function showToast(msg) {
+      hideLoading(); // setiap aksi yang berujung toast dianggap selesai diproses
+      var t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(function () { t.classList.remove('show'); }, 2200);
+    }
+
+    /* ---------------- NAVIGASI TAB ---------------- */
+    document.querySelectorAll('.sidebar-link[data-tab]').forEach(function (link) {
+      link.addEventListener('click', function () {
+        var tab = this.dataset.tab;
+        document.querySelectorAll('.sidebar-link[data-tab]').forEach(function (l) { l.classList.remove('active'); });
+        this.classList.add('active');
+        document.querySelectorAll('.tab-view').forEach(function (v) { v.classList.remove('active'); });
+        document.getElementById('tab-' + tab).classList.add('active');
+        showLoading('Memuat data...');
+        loadTab(tab);
+      });
+    });
+
+    function loadTab(tab) {
+      if (tab === 'statistik') loadStatistik();
+      if (tab === 'produk') loadProdukList();
+      if (tab === 'prompt') loadPromptLibrary();
+      if (tab === 'kodeakses') loadKodeAkses();
+      if (tab === 'users') loadUsers();
+      if (tab === 'update') loadUpdate();
+    }
+
+    /* ---------------- STATISTIK ---------------- */
+    function loadStatistik() {
+      google.script.run.withSuccessHandler(function (s) {
+        hideLoading();
+        s = s || {};
+        document.getElementById('statGrid').innerHTML =
+          statCard(s.totalUser, 'Total User') +
+          statCard(s.userAktif, 'User Aktif') +
+          statCard(s.totalProduk, 'Total Produk') +
+          statCard(s.kodeTerpakai + ' / ' + s.totalKodeAkses, 'Kode Akses Terpakai') +
+          statCard(s.loginMingguIni, 'Login 7 Hari Terakhir');
+      }).withFailureHandler(function (e) { showToast('Gagal memuat statistik: ' + e.message); })
+        .getStatistik(TOKEN);
+    }
+    function statCard(num, label) {
+      return '<div class="stat-card"><div class="stat-num">' + num + '</div><div class="stat-label">' + label + '</div></div>';
+    }
+
+    /* ---------------- PRODUK, MODUL, KONTEN (drill-down) ---------------- */
+    function loadProdukList() {
+      STATE.selectedProduk = null; STATE.selectedModul = null;
+      document.getElementById('produkBreadcrumb').innerHTML = '';
+      google.script.run.withSuccessHandler(function (list) {
+        STATE.produkList = list || [];
+        renderProdukList();
+      }).withFailureHandler(function (e) { showToast('Gagal memuat produk: ' + e.message); })
+        .adminGetAllProduk(TOKEN);
+    }
+
+    function renderProdukList() {
+      hideLoading();
+      var html = '<div class="panel"><div class="panel-head"><h3>Tambah Produk Baru</h3></div>' +
+        '<div class="form-row"><div><label>Nama Produk</label><input id="pNama"></div>' +
+        '<div><label>Kategori</label><input id="pKategori" placeholder="Contoh: Video Course"></div></div>' +
+        '<div class="form-row single"><div><label>Deskripsi</label><textarea id="pDeskripsi"></textarea></div></div>' +
+        '<div class="form-row single"><div><label>URL Thumbnail (opsional)</label><input id="pThumbnail" placeholder="https://..."></div></div>' +
+        '<button class="btn btn-primary btn-sm" onclick="createProduk()">Tambah Produk</button></div>';
+
+      html += '<div class="panel"><div class="panel-head"><h3>Daftar Produk</h3></div><table><thead><tr><th>Nama</th><th>Kategori</th><th></th></tr></thead><tbody>';
+      if (STATE.produkList.length === 0) {
+        html += '<tr class="empty-row"><td colspan="3">Belum ada produk.</td></tr>';
+      } else {
+        STATE.produkList.forEach(function (p) {
+          html += '<tr><td>' + p.nama + '</td><td>' + (p.kategori || '-') + '</td><td class="row-actions">' +
+            '<button class="btn btn-outline btn-sm" onclick="openModul(\'' + p.id + '\', \'' + escapeQ(p.nama) + '\')">Kelola Modul</button>' +
+            '<button class="btn btn-outline btn-sm" onclick="deleteProduk(\'' + p.id + '\')">Hapus</button></td></tr>';
+        });
+      }
+      html += '</tbody></table></div>';
+      document.getElementById('produkArea').innerHTML = html;
+    }
+
+    function escapeQ(str) { return String(str).replace(/'/g, "\\'"); }
+
+    function createProduk() {
+      showLoading('Menyimpan produk...');
+      var data = {
+        nama: document.getElementById('pNama').value,
+        kategori: document.getElementById('pKategori').value,
+        deskripsi: document.getElementById('pDeskripsi').value,
+        thumbnail: document.getElementById('pThumbnail').value
+      };
+      if (!data.nama) { showToast('Nama produk wajib diisi.'); return; }
+      google.script.run.withSuccessHandler(function () {
+        showToast('Produk berhasil ditambahkan.');
+        loadProdukList();
+      }).withFailureHandler(function (e) { showToast('Gagal: ' + e.message); })
+        .adminCreateProduk(TOKEN, data);
+    }
+
+    function deleteProduk(id) {
+      if (!confirm('Hapus produk ini? Modul & konten di dalamnya tidak otomatis terhapus.')) return;
+      showLoading('Menghapus produk...');
+      google.script.run.withSuccessHandler(function () {
+        showToast('Produk dihapus.');
+        loadProdukList();
+      }).withFailureHandler(function (e) { showToast('Gagal: ' + e.message); })
+        .adminDeleteProduk(TOKEN, id);
+    }
+
+    function openModul(produkId, produkNama) {
+      STATE.selectedProduk = { id: produkId, nama: produkNama };
+      document.getElementById('produkBreadcrumb').innerHTML =
+        '<a onclick="loadProdukList()">Produk</a> / ' + produkNama;
+      showLoading('Memuat modul...');
+      google.script.run.withSuccessHandler(function (list) {
+        STATE.modulList = list || [];
+        renderModulList();
+      }).withFailureHandler(function (e) { showToast('Gagal memuat modul: ' + e.message); })
+        .adminGetModulByProduk(TOKEN, produkId);
+    }
+
+    function renderModulList() {
+      hideLoading();
+      var html = '<div class="panel"><div class="panel-head"><h3>Tambah Modul</h3></div>' +
+        '<div class="form-row"><div><label>Nama Modul</label><input id="mNama"></div>' +
+        '<div><label>Urutan</label><input type="number" id="mUrutan" value="1"></div></div>' +
+        '<button class="btn btn-primary btn-sm" onclick="createModul()">Tambah Modul</button></div>';
+
+      html += '<div class="panel"><div class="panel-head"><h3>Daftar Modul</h3></div><table><thead><tr><th>Nama Modul</th><th>Urutan</th><th></th></tr></thead><tbody>';
+      if (STATE.modulList.length === 0) {
+        html += '<tr class="empty-row"><td colspan="3">Belum ada modul untuk produk ini.</td></tr>';
+      } else {
+        STATE.modulList.forEach(function (m) {
+          html += '<tr><td>' + m.nama_modul + '</td><td>' + m.urutan + '</td><td class="row-actions">' +
+            '<button class="btn btn-outline btn-sm" onclick="openKonten(\'' + m.id + '\', \'' + escapeQ(m.nama_modul) + '\')">Kelola Konten</button>' +
+            '<button class="btn btn-outline btn-sm" onclick="deleteModul(\'' + m.id + '\')">Hapus</button></td></tr>';
+        });
+      }
+      html += '</tbody></table></div>';
+      document.getElementById('produkArea').innerHTML = html;
+    }
+
+    function createModul() {
+      showLoading('Menyimpan modul...');
+      var data = {
+        produk_id: STATE.selectedProduk.id,
+        nama_modul: document.getElementById('mNama').value,
+        urutan: parseInt(document.getElementById('mUrutan').value, 10) || 0
+      };
+      if (!data.nama_modul) { showToast('Nama modul wajib diisi.'); return; }
+      google.script.run.withSuccessHandler(function () {
+        showToast('Modul ditambahkan.');
+        openModul(STATE.selectedProduk.id, STATE.selectedProduk.nama);
+      }).withFailureHandler(function (e) { showToast('Gagal: ' + e.message); })
+        .adminCreateModul(TOKEN, data);
+    }
+
+    function deleteModul(id) {
+      if (!confirm('Hapus modul ini?')) return;
+      showLoading('Menghapus modul...');
+      google.script.run.withSuccessHandler(function () {
+        showToast('Modul dihapus.');
+        openModul(STATE.selectedProduk.id, STATE.selectedProduk.nama);
+      }).withFailureHandler(function (e) { showToast('Gagal: ' + e.message); })
+        .adminDeleteModul(TOKEN, id);
+    }
+
+    function openKonten(modulId, modulNama) {
+      STATE.selectedModul = { id: modulId, nama: modulNama };
+      document.getElementById('produkBreadcrumb').innerHTML =
+        '<a onclick="loadProdukList()">Produk</a> / ' +
+        '<a onclick="openModul(\'' + STATE.selectedProduk.id + '\', \'' + escapeQ(STATE.selectedProduk.nama) + '\')">' + STATE.selectedProduk.nama + '</a> / ' + modulNama;
+      showLoading('Memuat konten...');
+      google.script.run.withSuccessHandler(function (list) {
+        STATE.kontenList = list || [];
+        renderKontenList();
+      }).withFailureHandler(function (e) { showToast('Gagal memuat konten: ' + e.message); })
+        .adminGetKontenByModul(TOKEN, modulId);
+    }
+
+    function renderKontenList() {
+      hideLoading();
+      var html = '<div class="panel"><div class="panel-head"><h3>Tambah Konten</h3></div>' +
+        '<div class="form-row"><div><label>Tipe</label><select id="kTipe">' +
+        '<option value="video">Video</option><option value="pdf">PDF / Dokumen</option>' +
+        '<option value="prompt">Prompt</option><option value="template">Template</option></select></div>' +
+        '<div><label>Urutan</label><input type="number" id="kUrutan" value="1"></div></div>' +
+        '<div class="form-row single"><div><label>Judul</label><input id="kJudul"></div></div>' +
+        '<div class="form-row single"><div><label>URL (link Google Drive / video)</label><input id="kUrl" placeholder="https://drive.google.com/..."></div></div>' +
+        '<button class="btn btn-primary btn-sm" onclick="createKonten()">Tambah Konten</button></div>';
+
+      html += '<div class="panel"><div class="panel-head"><h3>Daftar Konten</h3></div><table><thead><tr><th>Tipe</th><th>Judul</th><th></th></tr></thead><tbody>';
+      if (STATE.kontenList.length === 0) {
+        html += '<tr class="empty-row"><td colspan="3">Belum ada konten di modul ini.</td></tr>';
+      } else {
+        STATE.kontenList.forEach(function (k) {
+          html += '<tr><td><span class="chip">' + k.tipe + '</span></td><td>' + k.judul + '</td><td class="row-actions">' +
+            '<button class="btn btn-outline btn-sm" onclick="deleteKonten(\'' + k.id + '\')">Hapus</button></td></tr>';
+        });
+      }
+      html += '</tbody></table></div>';
+      document.getElementById('produkArea').innerHTML = html;
+    }
+
+    function createKonten() {
+      showLoading('Menyimpan konten...');
+      var data = {
+        modul_id: STATE.selectedModul.id,
+        tipe: document.getElementById('kTipe').value,
+        judul: document.getElementById('kJudul').value,
+        url: document.getElementById('kUrl').value,
+        urutan: parseInt(document.getElementById('kUrutan').value, 10) || 0
+      };
+      if (!data.judul || !data.url) { showToast('Judul dan URL wajib diisi.'); return; }
+      google.script.run.withSuccessHandler(function () {
+        showToast('Konten ditambahkan.');
+        openKonten(STATE.selectedModul.id, STATE.selectedModul.nama);
+      }).withFailureHandler(function (e) { showToast('Gagal: ' + e.message); })
+        .adminCreateKonten(TOKEN, data);
+    }
+
+    function deleteKonten(id) {
+      if (!confirm('Hapus konten ini?')) return;
+      showLoading('Menghapus konten...');
+      google.script.run.withSuccessHandler(function () {
+        showToast('Konten dihapus.');
+        openKonten(STATE.selectedModul.id, STATE.selectedModul.nama);
+      }).withFailureHandler(function (e) { showToast('Gagal: ' + e.message); })
+        .adminDeleteKonten(TOKEN, id);
+    }
+
+    /* ---------------- PROMPT LIBRARY ---------------- */
+    function loadPromptLibrary() {
+      google.script.run.withSuccessHandler(function (produkList) {
+        produkList = produkList || [];
+        var sel = document.getElementById('promptProduk');
+        sel.innerHTML = produkList.map(function (p) { return '<option value="' + p.id + '">' + p.nama + '</option>'; }).join('');
+      }).adminGetAllProduk(TOKEN);
+
+      google.script.run.withSuccessHandler(function (list) {
+        hideLoading();
+        list = list || [];
+        try {
+          var tbody = document.getElementById('promptTable');
+          if (list.length === 0) {
+            tbody.innerHTML = '<tr class="empty-row"><td colspan="4">Belum ada prompt.</td></tr>';
+            return;
+          }
+          tbody.innerHTML = list.map(function (p) {
+            return '<tr><td>' + p.judul + '</td><td><span class="chip">' + (p.kategori || 'Umum') + '</span></td><td>' + (p.produk_id || '-') + '</td>' +
+              '<td><button class="btn btn-outline btn-sm" onclick="deletePrompt(\'' + p.id + '\')">Hapus</button></td></tr>';
+          }).join('');
+        } catch (renderErr) {
+          showToast('Gagal menampilkan tabel: ' + renderErr.message);
+        }
+      }).withFailureHandler(function (e) {
+        hideLoading();
+        showToast('Gagal memuat prompt: ' + e.message);
+      })
+        .adminGetAllPrompt(TOKEN);
+    }
+
+    function createPrompt() {
+      var data = {
+        produk_id: document.getElementById('promptProduk').value,
+        kategori: document.getElementById('promptKategori').value,
+        judul: document.getElementById('promptJudul').value,
+        isi_prompt: document.getElementById('promptIsi').value
+      };
+      if (!data.produk_id) { showToast('Buat produk terlebih dahulu.'); return; }
+      if (!data.judul || !data.isi_prompt) { showToast('Judul dan isi prompt wajib diisi.'); return; }
+      showLoading('Menyimpan prompt...');
+      google.script.run.withSuccessHandler(function () {
+        showToast('Prompt berhasil ditambahkan.');
+        document.getElementById('promptJudul').value = '';
+        document.getElementById('promptIsi').value = '';
+        document.getElementById('promptKategori').value = '';
+        loadPromptLibrary();
+      }).withFailureHandler(function (e) { showToast('Gagal: ' + e.message); })
+        .adminCreatePrompt(TOKEN, data);
+    }
+
+    function deletePrompt(id) {
+      if (!confirm('Hapus prompt ini?')) return;
+      showLoading('Menghapus prompt...');
+      google.script.run.withSuccessHandler(function () {
+        showToast('Prompt dihapus.');
+        loadPromptLibrary();
+      }).withFailureHandler(function (e) { showToast('Gagal: ' + e.message); })
+        .adminDeletePrompt(TOKEN, id);
+    }
+
+    /* ---------------- KODE AKSES ---------------- */
+    function loadKodeAkses() {
+      google.script.run.withSuccessHandler(function (produkList) {
+        produkList = produkList || [];
+        var sel = document.getElementById('genKodeProduk');
+        sel.innerHTML = produkList.map(function (p) { return '<option value="' + p.id + '">' + p.nama + '</option>'; }).join('');
+      }).adminGetAllProduk(TOKEN);
+
+      google.script.run.withSuccessHandler(function (list) {
+        hideLoading();
+        list = list || [];
+        try {
+          var tbody = document.getElementById('kodeAksesTable');
+          if (list.length === 0) {
+            tbody.innerHTML = '<tr class="empty-row"><td colspan="5">Belum ada kode akses.</td></tr>';
+            return;
+          }
+          tbody.innerHTML = list.map(function (k) {
+            var status = k.status_pakai === 'terpakai'
+              ? '<span class="badge nonaktif">Terpakai</span>'
+              : '<span class="badge aktif">Tersedia</span>';
+            return '<tr><td class="code-mono">' + k.kode + '</td><td>' + (k.produk_id || '-') + '</td><td>' + status + '</td><td>' + (k.dipakai_oleh || '-') + '</td>' +
+              '<td><button class="btn btn-outline btn-sm" onclick="deleteKode(\'' + k.kode + '\')">Hapus</button></td></tr>';
+          }).join('');
+        } catch (renderErr) {
+          showToast('Gagal menampilkan tabel: ' + renderErr.message);
+        }
+      }).withFailureHandler(function (e) {
+        hideLoading();
+        showToast('Gagal memuat kode akses: ' + e.message);
+      })
+        .adminGetAllKodeAkses(TOKEN);
+    }
+
+    function generateKode() {
+      showLoading('Membuat kode akses...');
+      var produkId = document.getElementById('genKodeProduk').value;
+      var jumlah = parseInt(document.getElementById('genKodeJumlah').value, 10) || 1;
+      if (!produkId) { showToast('Buat produk terlebih dahulu.'); return; }
+      google.script.run.withSuccessHandler(function (res) {
+        showToast(res.kodeList.length + ' kode berhasil dibuat.');
+        loadKodeAkses();
+      }).withFailureHandler(function (e) { showToast('Gagal: ' + e.message); })
+        .adminGenerateKodeAkses(TOKEN, produkId, jumlah);
+    }
+
+    function deleteKode(kode) {
+      if (!confirm('Hapus kode akses ini?')) return;
+      showLoading('Menghapus kode...');
+      google.script.run.withSuccessHandler(function () {
+        showToast('Kode dihapus.');
+        loadKodeAkses();
+      }).withFailureHandler(function (e) { showToast('Gagal: ' + e.message); })
+        .adminDeleteKodeAkses(TOKEN, kode);
+    }
+
+    /* ---------------- USERS ---------------- */
+    function loadUsers() {
+      google.script.run.withSuccessHandler(function (list) {
+        hideLoading();
+        list = list || [];
+        try {
+          var tbody = document.getElementById('usersTable');
+          if (list.length === 0) {
+            tbody.innerHTML = '<tr class="empty-row"><td colspan="6">Belum ada user.</td></tr>';
+            return;
+          }
+          tbody.innerHTML = list.map(function (u) {
+            var statusBadge = u.status === 'aktif' ? '<span class="badge aktif">Aktif</span>' : '<span class="badge nonaktif">Nonaktif</span>';
+            var roleBadge = u.role === 'admin' ? '<span class="badge admin">Admin</span>' : 'Member';
+            var toggleLabel = u.status === 'aktif' ? 'Nonaktifkan' : 'Aktifkan';
+            var toggleStatus = u.status === 'aktif' ? 'nonaktif' : 'aktif';
+            return '<tr><td>' + u.nama + '</td><td>' + u.email + '</td><td>' + roleBadge + '</td><td>' + statusBadge + '</td><td>' + (u.terakhir_login || '-') + '</td>' +
+              '<td class="row-actions">' +
+              '<button class="btn btn-outline btn-sm" onclick="toggleUserStatus(\'' + u.id + '\', \'' + toggleStatus + '\')">' + toggleLabel + '</button>' +
+              '<button class="btn btn-outline btn-sm" onclick="deleteUser(\'' + u.id + '\')">Hapus</button></td></tr>';
+          }).join('');
+        } catch (renderErr) {
+          showToast('Gagal menampilkan tabel: ' + renderErr.message);
+        }
+      }).withFailureHandler(function (e) {
+        hideLoading();
+        showToast('Gagal memuat user: ' + e.message);
+      })
+        .adminGetAllUsers(TOKEN);
+    }
+
+    function toggleUserStatus(userId, newStatus) {
+      showLoading('Memperbarui status user...');
+      google.script.run.withSuccessHandler(function () {
+        showToast('Status user diperbarui.');
+        loadUsers();
+      }).withFailureHandler(function (e) { showToast('Gagal: ' + e.message); })
+        .adminSetUserStatus(TOKEN, userId, newStatus);
+    }
+
+    function deleteUser(userId) {
+      if (!confirm('Hapus user ini secara permanen?')) return;
+      showLoading('Menghapus user...');
+      google.script.run.withSuccessHandler(function () {
+        showToast('User dihapus.');
+        loadUsers();
+      }).withFailureHandler(function (e) { showToast('Gagal: ' + e.message); })
+        .adminDeleteUser(TOKEN, userId);
+    }
+
+    /* ---------------- UPDATE / PENGUMUMAN ---------------- */
+    function loadUpdate() {
+      google.script.run.withSuccessHandler(function (list) {
+        hideLoading();
+        list = list || [];
+        var tbody = document.getElementById('updateTable');
+        if (list.length === 0) {
+          tbody.innerHTML = '<tr class="empty-row"><td colspan="3">Belum ada update.</td></tr>';
+          return;
+        }
+        tbody.innerHTML = list.map(function (u) {
+          return '<tr><td>' + u.judul + '</td><td>' + u.tanggal + '</td>' +
+            '<td><button class="btn btn-outline btn-sm" onclick="deleteUpdate(\'' + u.id + '\')">Hapus</button></td></tr>';
+        }).join('');
+      }).withFailureHandler(function (e) { showToast('Gagal memuat update: ' + e.message); })
+        .adminGetAllUpdate(TOKEN);
+    }
+
+    function createUpdate() {
+      showLoading('Mempublikasikan update...');
+      var data = {
+        judul: document.getElementById('updateJudul').value,
+        isi: document.getElementById('updateIsi').value
+      };
+      if (!data.judul || !data.isi) { showToast('Judul dan isi wajib diisi.'); return; }
+      google.script.run.withSuccessHandler(function () {
+        showToast('Update dipublikasikan.');
+        document.getElementById('updateJudul').value = '';
+        document.getElementById('updateIsi').value = '';
+        loadUpdate();
+      }).withFailureHandler(function (e) { showToast('Gagal: ' + e.message); })
+        .adminCreateUpdate(TOKEN, data);
+    }
+
+    function deleteUpdate(id) {
+      if (!confirm('Hapus update ini?')) return;
+      showLoading('Menghapus update...');
+      google.script.run.withSuccessHandler(function () {
+        showToast('Update dihapus.');
+        loadUpdate();
+      }).withFailureHandler(function (e) { showToast('Gagal: ' + e.message); })
+        .adminDeleteUpdate(TOKEN, id);
+    }
+
+    /* ---------------- INIT ---------------- */
+    showLoading('Memuat statistik...');
+    loadStatistik();
+  </script>
+</body>
+</html>

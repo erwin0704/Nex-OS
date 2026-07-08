@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <base target="_top" href="<?= webAppUrl ?>">
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .main { max-width: 860px; margin: 0 auto; padding: 32px 24px 60px; }
+    .back-link { font-size: 13px; color: var(--ink-soft); margin-bottom: 16px; display: inline-flex; align-items: center; gap: 6px; }
+    .back-link:hover { color: var(--accent); }
+
+    .breadcrumb-mini { font-size: 12px; color: var(--ink-soft); margin-bottom: 6px; }
+    .video-title { font-size: 22px; margin-bottom: 18px; }
+
+    .video-frame-wrap {
+      position: relative; width: 100%; padding-top: 56.25%; /* rasio 16:9 */
+      background: #000; border-radius: var(--radius); overflow: hidden;
+      margin-bottom: 20px; box-shadow: var(--shadow);
+    }
+    .video-frame-wrap iframe, .video-frame-wrap video {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;
+    }
+    .video-fallback {
+      position: absolute; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 12px; color: #fff; text-align: center; padding: 24px;
+    }
+
+    .action-row {
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 12px; margin-bottom: 28px;
+    }
+    .mark-done-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 18px; border-radius: 10px; font-size: 14px; font-weight: 600;
+      border: 1px solid var(--border); background: var(--surface); cursor: pointer;
+    }
+    .mark-done-btn.done { background: #ECFDF5; border-color: #A7F3D0; color: var(--success); }
+    .mark-done-btn .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
+    .mark-done-btn.done .dot { background: var(--success); }
+
+    .nav-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .nav-card {
+      border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px;
+      display: block; background: var(--surface);
+    }
+    .nav-card:hover { border-color: var(--accent); }
+    .nav-card .nav-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-soft); margin-bottom: 4px; }
+    .nav-card .nav-title { font-size: 14px; font-weight: 600; }
+    .nav-card.next { text-align: right; }
+    .nav-card.disabled { opacity: 0.4; pointer-events: none; }
+
+    .empty-state {
+      border: 1px dashed var(--border); border-radius: var(--radius);
+      padding: 40px 24px; text-align: center; color: var(--ink-soft); font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <main class="main">
+    <a href="?page=dashboard&token=<?= session.token ?>" class="back-link">← Kembali ke Dashboard</a>
+
+    <? if (!videoDetail.access) { ?>
+      <div class="empty-state">
+        <h3 style="margin-bottom:8px;">🔒 Kamu tidak memiliki akses ke video ini</h3>
+        <p style="font-size:13px;">Kalau menurutmu ini keliru, hubungi admin untuk pengecekan.</p>
+        <a href="?page=dashboard&token=<?= session.token ?>" class="btn btn-primary btn-sm" style="margin-top:8px;">Kembali ke Dashboard</a>
+      </div>
+    <? } else { ?>
+
+      <div class="breadcrumb-mini">
+        <a href="?page=produk&id=<?= videoDetail.produkId ?>&token=<?= session.token ?>"><?= videoDetail.produkNama ?></a>
+        &nbsp;/&nbsp;<?= videoDetail.modulNama ?>
+      </div>
+      <h1 class="video-title"><?= videoDetail.konten.judul ?></h1>
+
+      <div class="video-frame-wrap" id="videoFrameWrap">
+        <!-- Video embed disuntikkan lewat JS (lihat script di bawah) -->
+      </div>
+
+      <div class="action-row">
+        <button class="mark-done-btn <?= videoDetail.konten.selesai ? 'done' : '' ?>" id="markDoneBtn" onclick="toggleSelesai()">
+          <span class="dot"></span>
+          <span id="markDoneLabel"><?= videoDetail.konten.selesai ? 'Sudah Selesai Ditonton' : 'Tandai Sudah Selesai' ?></span>
+        </button>
+        <a href="?page=produk&id=<?= videoDetail.produkId ?>&token=<?= session.token ?>" class="btn btn-outline btn-sm">Lihat Semua Modul</a>
+      </div>
+
+      <div class="nav-row">
+        <? if (videoDetail.prev) { ?>
+          <a class="nav-card prev" href="?page=<?= videoDetail.prev.tipe === 'video' ? 'video' : 'produk' ?>&id=<?= videoDetail.prev.tipe === 'video' ? videoDetail.prev.id : videoDetail.produkId ?>&token=<?= session.token ?>">
+            <div class="nav-label">← Sebelumnya</div>
+            <div class="nav-title"><?= videoDetail.prev.judul ?></div>
+          </a>
+        <? } else { ?>
+          <div class="nav-card disabled"><div class="nav-label">← Sebelumnya</div><div class="nav-title">Tidak ada</div></div>
+        <? } ?>
+
+        <? if (videoDetail.next) { ?>
+          <a class="nav-card next" href="?page=<?= videoDetail.next.tipe === 'video' ? 'video' : 'produk' ?>&id=<?= videoDetail.next.tipe === 'video' ? videoDetail.next.id : videoDetail.produkId ?>&token=<?= session.token ?>">
+            <div class="nav-label">Berikutnya →</div>
+            <div class="nav-title"><?= videoDetail.next.judul ?></div>
+          </a>
+        <? } else { ?>
+          <div class="nav-card disabled next"><div class="nav-label">Berikutnya →</div><div class="nav-title">Tidak ada</div></div>
+        <? } ?>
+      </div>
+
+    <? } ?>
+  </main>
+
+  <script src="js/script.js"></script>
+  <script>
+    var TOKEN = <?!= JSON.stringify(session.token) ?>;
+    var USER_ID = <?!= JSON.stringify(session.userId) ?>;
+    var WEBAPP_URL = <?!= JSON.stringify(webAppUrl) ?>;
+    var VIDEO_ACCESS = <?!= JSON.stringify(videoDetail.access) ?>;
+    var VIDEO_URL = <?!= JSON.stringify(videoDetail.access ? videoDetail.konten.url : '') ?>;
+    var VIDEO_KONTEN_ID = <?!= JSON.stringify(videoDetail.access ? videoDetail.konten.id : '') ?>;
+
+    cleanTokenFromUrl('video', { id: VIDEO_KONTEN_ID });
+
+    // ---------- Deteksi tipe URL & bangun embed yang sesuai ----------
+    function renderVideoEmbed() {
+      var wrap = document.getElementById('videoFrameWrap');
+      if (!wrap || !VIDEO_URL) return;
+
+      var youtubeMatch = VIDEO_URL.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{6,})/);
+      var driveMatch = VIDEO_URL.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+
+      if (youtubeMatch) {
+        wrap.innerHTML = '<iframe src="https://www.youtube.com/embed/' + youtubeMatch[1] + '" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
+        return;
+      }
+
+      if (driveMatch) {
+        wrap.innerHTML = '<iframe src="https://drive.google.com/file/d/' + driveMatch[1] + '/preview" allow="autoplay" allowfullscreen></iframe>';
+        return;
+      }
+
+      // Fallback: coba tag <video> langsung (untuk link .mp4 dsb), dengan tombol buka di tab baru
+      wrap.innerHTML =
+        '<video controls style="position:absolute;top:0;left:0;width:100%;height:100%;background:#000;">' +
+        '<source src="' + VIDEO_URL + '">' +
+        '</video>' +
+        '<div class="video-fallback" style="display:none;" id="videoFallbackMsg">' +
+        '<p>Video tidak bisa diputar langsung di sini.</p>' +
+        '<a href="' + VIDEO_URL + '" target="_blank" rel="noopener" class="btn btn-primary btn-sm">Buka Video di Tab Baru</a>' +
+        '</div>';
+
+      var videoEl = wrap.querySelector('video');
+      if (videoEl) {
+        videoEl.addEventListener('error', function () {
+          videoEl.style.display = 'none';
+          document.getElementById('videoFallbackMsg').style.display = 'flex';
+        });
+      }
+    }
+
+    if (VIDEO_ACCESS) {
+      renderVideoEmbed();
+    }
+
+    // ---------- Tandai selesai / belum selesai ----------
+    function toggleSelesai() {
+      var btn = document.getElementById('markDoneBtn');
+      var label = document.getElementById('markDoneLabel');
+      var isNowDone = !btn.classList.contains('done');
+
+      btn.classList.toggle('done', isNowDone);
+      label.textContent = isNowDone ? 'Sudah Selesai Ditonton' : 'Tandai Sudah Selesai';
+      showLoading('Menyimpan progress...');
+
+      google.script.run
+        .withSuccessHandler(function () { hideLoading(); })
+        .withFailureHandler(function (err) {
+          hideLoading();
+          btn.classList.toggle('done', !isNowDone);
+          label.textContent = !isNowDone ? 'Sudah Selesai Ditonton' : 'Tandai Sudah Selesai';
+          alert('Gagal menyimpan progress: ' + err.message);
+        })
+        .setKontenProgress(USER_ID, VIDEO_KONTEN_ID, isNowDone);
+    }
+  </script>
+</body>
+</html>
